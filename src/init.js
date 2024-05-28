@@ -26,10 +26,6 @@ window.addEventListener('dblclick', fullscreen)
 /**
  * Object
  */
-// const geometry = new THREE.BoxGeometry(1, 1, 1)
-// const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
-// const mesh = new THREE.Mesh(geometry, material)
-// scene.add(mesh)
 
 function initBoids() {
     const boidCount = 1000
@@ -97,7 +93,7 @@ function avoidBoids(boid, boids) {
     boids.children.forEach(otherBoid => {
         if (boid !== otherBoid) {
             const distance = boid.position.distanceTo(otherBoid.position)
-            if (distance < 1) {
+            if (distance < 0.5) {
                 // move away from other boid
                 const away = boid.position.clone().sub(otherBoid.position).normalize().multiplyScalar(2)
                 boid.direction.add(away)
@@ -128,7 +124,7 @@ function moveTowardsCenterOfMass(boid, boids) {
             centerY += otherBoid.position.y
             centerZ += otherBoid.position.z
             nbNeighbors++
-            boid.direction.add(otherBoid.direction).multiplyScalar(1.1)
+            boid.direction.add(otherBoid.direction).multiplyScalar(2)
         }
     })
     if (nbNeighbors > 0) {
@@ -150,13 +146,13 @@ function updatePosition(boid) {
 
 function checkBounds(boid) {
     if (boid.position.x > 15 || boid.position.x < -15) {
-        boid.direction.x *= Math.random() - 0.5
+        boid.direction.x = -boid.direction.x + (Math.random() - 0.5)
     }
     if (boid.position.y > 15 || boid.position.y < -15) {
-        boid.direction.y *= Math.random() - 0.5
+        boid.direction.y = -boid.direction.x + (Math.random() - 0.5)
     }
     if (boid.position.z > 15 || boid.position.z < -15) {
-        boid.direction.z *= Math.random() - 0.5
+        boid.direction.z =  -boid.direction.x + (Math.random() - 0.5)
     }
     boid.direction.normalize()
 }
