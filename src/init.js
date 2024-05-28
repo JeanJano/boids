@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { moveTowardsCenterOfMass, rotateBoid, avoidBoids, limitSpeed, updatePosition, checkBounds } from './boids.js'
 
 const sizes = {
     width: window.innerWidth,
@@ -22,31 +23,6 @@ const renderer = new THREE.WebGLRenderer({
 
 window.addEventListener('resize', resize_screen)
 window.addEventListener('dblclick', fullscreen)
-
-/**
- * Object
- */
-
-function initBoids() {
-    const boidCount = 1000
-    const boids = new THREE.Group()
-
-    for (let i = 0; i < boidCount; i++) {
-        const geometry = new THREE.ConeGeometry(0.08, 0.4, 32)
-        const material = new THREE.MeshBasicMaterial({ color: 0xffff00 })
-        const mesh = new THREE.Mesh(geometry, material)
-        mesh.position.x = Math.random() * 10 - 5
-        mesh.position.y = Math.random() * 10 - 5
-        mesh.position.z = Math.random() * 10 - 5
-        // add a direction vector to the boid
-        mesh.direction = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5)
-
-        boids.add(mesh)
-    }
-
-    scene.add(boids)
-    return (boids)
-}
 
 function resize_screen() {
     // Update sizes
@@ -83,78 +59,29 @@ function fullscreen() {
     }
 }
 
-function rotateBoid(boid) {
-    let targetQuaternion = new THREE.Quaternion();
-    targetQuaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), boid.direction.clone().normalize());
-    boid.quaternion.slerp(targetQuaternion, 0.1);
-}
+/**
+ * Object
+ */
 
-function avoidBoids(boid, boids) {
-    boids.children.forEach(otherBoid => {
-        if (boid !== otherBoid) {
-            const distance = boid.position.distanceTo(otherBoid.position)
-            if (distance < 0.5) {
-                // move away from other boid
-                const away = boid.position.clone().sub(otherBoid.position).normalize().multiplyScalar(2)
-                boid.direction.add(away)
-            }
-        }
-    })
-}
+function initBoids() {
+    const boidCount = 1000
+    const boids = new THREE.Group()
 
-function limitSpeed(boid) {
-    const maxSpeed = 0.1
-    const minSpeed = 0.01
-    if (boid.direction.length() > maxSpeed) {
-        boid.direction.normalize().multiplyScalar(maxSpeed)
-    } else if (boid.direction.length() < minSpeed) {
-        boid.direction.normalize().multiplyScalar(minSpeed)
-    }
-}
+    for (let i = 0; i < boidCount; i++) {
+        const geometry = new THREE.ConeGeometry(0.08, 0.4, 32)
+        const material = new THREE.MeshBasicMaterial({ color: 0xffff00 })
+        const mesh = new THREE.Mesh(geometry, material)
+        mesh.position.x = Math.random() * 10 - 5
+        mesh.position.y = Math.random() * 10 - 5
+        mesh.position.z = Math.random() * 10 - 5
+        // add a direction vector to the boid
+        mesh.direction = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5)
 
-function moveTowardsCenterOfMass(boid, boids) {
-    let centerX = 0
-    let centerY = 0
-    let centerZ = 0
-    let nbNeighbors = 0
-    boids.children.forEach(otherBoid => {
-        const distance = boid.position.distanceTo(otherBoid.position)
-        if (distance < 1) {
-            centerX += otherBoid.position.x
-            centerY += otherBoid.position.y
-            centerZ += otherBoid.position.z
-            nbNeighbors++
-            boid.direction.add(otherBoid.direction).multiplyScalar(2)
-        }
-    })
-    if (nbNeighbors > 0) {
-        centerX /= nbNeighbors
-        centerY /= nbNeighbors
-        centerZ /= nbNeighbors
-        const centerOfMass = new THREE.Vector3(centerX, centerY, centerZ)
-        const centerOfMassDirection = centerOfMass.clone().sub(boid.position).normalize().multiplyScalar(0.25)
-        boid.direction.add(centerOfMassDirection)
+        boids.add(mesh)
     }
-}
 
-function updatePosition(boid) {
-    const speed = 0.1 // adjust the speed value to control the boid's movement speed
-    boid.position.x += boid.direction.x * speed
-    boid.position.y += boid.direction.y * speed
-    boid.position.z += boid.direction.z * speed
-}
-
-function checkBounds(boid) {
-    if (boid.position.x > 15 || boid.position.x < -15) {
-        boid.direction.x = -boid.direction.x + (Math.random() - 0.5)
-    }
-    if (boid.position.y > 15 || boid.position.y < -15) {
-        boid.direction.y = -boid.direction.x + (Math.random() - 0.5)
-    }
-    if (boid.position.z > 15 || boid.position.z < -15) {
-        boid.direction.z =  -boid.direction.x + (Math.random() - 0.5)
-    }
-    boid.direction.normalize()
+    scene.add(boids)
+    return (boids)
 }
 
 function init() {
@@ -169,12 +96,6 @@ function init() {
 
     const boids = initBoids()
 
-    // print all boids positions
-    // boids.children.forEach(boid => {
-    //     console.log(boid.position)
-    //     console.log(boid.direction)
-    // })
-
     const tick = () => {
         controls.update()
 
@@ -186,14 +107,8 @@ function init() {
             avoidBoids(boid, boids)
             limitSpeed(boid)
             moveTowardsCenterOfMass(boid, boids)
-            const maxDirection = 1.5
-            if (boid.direction.length() > maxDirection) {
-                boid.direction.normalize().multiplyScalar(maxDirection)
-            }
             updatePosition(boid)
             checkBounds(boid)
-
-            // limit the direction vector
         })
 
         window.requestAnimationFrame(tick)
