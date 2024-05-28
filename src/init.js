@@ -26,13 +26,13 @@ window.addEventListener('dblclick', fullscreen)
 /**
  * Object
  */
-const geometry = new THREE.BoxGeometry(1, 1, 1)
-const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
-const mesh = new THREE.Mesh(geometry, material)
-scene.add(mesh)
+// const geometry = new THREE.BoxGeometry(1, 1, 1)
+// const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
+// const mesh = new THREE.Mesh(geometry, material)
+// scene.add(mesh)
 
 function initBoids() {
-    const boidCount = 200
+    const boidCount = 1000
     const boids = new THREE.Group()
 
     for (let i = 0; i < boidCount; i++) {
@@ -97,9 +97,9 @@ function avoidBoids(boid, boids) {
     boids.children.forEach(otherBoid => {
         if (boid !== otherBoid) {
             const distance = boid.position.distanceTo(otherBoid.position)
-            if (distance < 5) {
+            if (distance < 1) {
                 // move away from other boid
-                const away = boid.position.clone().sub(otherBoid.position).normalize()
+                const away = boid.position.clone().sub(otherBoid.position).normalize().multiplyScalar(2)
                 boid.direction.add(away)
             }
         }
@@ -108,8 +108,11 @@ function avoidBoids(boid, boids) {
 
 function limitSpeed(boid) {
     const maxSpeed = 0.1
+    const minSpeed = 0.01
     if (boid.direction.length() > maxSpeed) {
         boid.direction.normalize().multiplyScalar(maxSpeed)
+    } else if (boid.direction.length() < minSpeed) {
+        boid.direction.normalize().multiplyScalar(minSpeed)
     }
 }
 
@@ -120,9 +123,12 @@ function moveTowardsCenterOfMass(boid, boids) {
     let nbNeighbors = 0
     boids.children.forEach(otherBoid => {
         const distance = boid.position.distanceTo(otherBoid.position)
-        if (distance < 0.5) {
-            boid.direction.add(otherBoid.direction)
+        if (distance < 1) {
+            centerX += otherBoid.position.x
+            centerY += otherBoid.position.y
+            centerZ += otherBoid.position.z
             nbNeighbors++
+            boid.direction.add(otherBoid.direction).multiplyScalar(1.1)
         }
     })
     if (nbNeighbors > 0) {
@@ -130,7 +136,7 @@ function moveTowardsCenterOfMass(boid, boids) {
         centerY /= nbNeighbors
         centerZ /= nbNeighbors
         const centerOfMass = new THREE.Vector3(centerX, centerY, centerZ)
-        const centerOfMassDirection = centerOfMass.clone().sub(boid.position).normalize()
+        const centerOfMassDirection = centerOfMass.clone().sub(boid.position).normalize().multiplyScalar(0.25)
         boid.direction.add(centerOfMassDirection)
     }
 }
@@ -143,15 +149,16 @@ function updatePosition(boid) {
 }
 
 function checkBounds(boid) {
-    if (boid.position.x > 10 || boid.position.x < -10) {
-        boid.direction.x *= -1
+    if (boid.position.x > 15 || boid.position.x < -15) {
+        boid.direction.x *= Math.random() - 0.5
     }
-    if (boid.position.y > 10 || boid.position.y < -10) {
-        boid.direction.y *= -1
+    if (boid.position.y > 15 || boid.position.y < -15) {
+        boid.direction.y *= Math.random() - 0.5
     }
-    if (boid.position.z > 10 || boid.position.z < -10) {
-        boid.direction.z *= -1
+    if (boid.position.z > 15 || boid.position.z < -15) {
+        boid.direction.z *= Math.random() - 0.5
     }
+    boid.direction.normalize()
 }
 
 function init() {
