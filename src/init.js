@@ -1,6 +1,6 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { moveTowardsCenterOfMass, rotateBoid, avoidBoids, limitSpeed, updatePosition, checkBounds } from './boids.js'
+import { moveTowardsCenterOfMass, rotateBoid, avoidBoids, speed, updatePosition, checkBounds } from './boids.js'
 
 const sizes = {
     width: window.innerWidth,
@@ -64,7 +64,7 @@ function fullscreen() {
  */
 
 function initBoids() {
-    const boidCount = 1000
+    const boidCount = 200
     const boids = new THREE.Group()
 
     for (let i = 0; i < boidCount; i++) {
@@ -105,8 +105,8 @@ function init() {
         boids.children.forEach(boid => {
             rotateBoid(boid)
             avoidBoids(boid, boids)
-            limitSpeed(boid)
             moveTowardsCenterOfMass(boid, boids)
+            speed(boid)
             updatePosition(boid)
             checkBounds(boid)
         })
