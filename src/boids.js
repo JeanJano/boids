@@ -57,6 +57,7 @@ function avoidBoids(boid, boids) {
             }
         }
     })
+    boid.direction.normalize()
 }
 
 function speed(boid) {
@@ -72,15 +73,12 @@ function updatePosition(boid) {
     boid.position.z += boid.direction.z * speed
 }
 
-function checkBounds(boid) {
-    if (boid.position.x > 10 || boid.position.x < -10) {
-        boid.direction.x = -boid.direction.x + (Math.random() - 0.5)
-    }
-    if (boid.position.y > 10 || boid.position.y < -10) {
-        boid.direction.y = -boid.direction.x + (Math.random() - 0.5)
-    }
-    if (boid.position.z > 10 || boid.position.z < -10) {
-        boid.direction.z =  -boid.direction.x + (Math.random() - 0.5)
+function checkBounds(boid, bounds) {
+    const raycaster = new THREE.Raycaster(boid.position, boid.direction, 0, 500);
+    const intersects = raycaster.intersectObjects([bounds]);
+
+    if (intersects.length > 0 && intersects[0].distance < 10) {
+        boid.direction.reflect(intersects[0].face.normal);
     }
     boid.direction.normalize()
 }

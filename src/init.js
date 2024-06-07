@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { moveTowardsCenterOfMass, rotateBoid, avoidBoids, speed, updatePosition, checkBounds } from './boids.js'
+import { BoundingBox } from 'three/examples/jsm/libs/opentype.module.js'
 
 const sizes = {
     width: window.innerWidth,
@@ -64,7 +65,7 @@ function fullscreen() {
  */
 
 function initBoids() {
-    const boidCount = 200
+    const boidCount = 1000
     const boids = new THREE.Group()
 
     for (let i = 0; i < boidCount; i++) {
@@ -84,8 +85,16 @@ function initBoids() {
     return (boids)
 }
 
+function init_bounds() {
+    const geometry = new THREE.BoxGeometry(50, 50, 50)
+    const material = new THREE.MeshBasicMaterial({ color: 0x403002, side: THREE.BackSide, visible: false})
+    const bounds = new THREE.Mesh(geometry, material)
+    scene.add(bounds)
+    return (bounds)
+}
+
 function init() {
-    camera.position.z = 12
+    camera.position.z = 60
     scene.add(camera)
 
     const controls = new OrbitControls(camera, canvas)
@@ -95,6 +104,9 @@ function init() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
     const boids = initBoids()
+
+    const bounds = init_bounds()
+    console.log(bounds)
 
     const tick = () => {
         controls.update()
@@ -108,7 +120,7 @@ function init() {
             moveTowardsCenterOfMass(boid, boids)
             speed(boid)
             updatePosition(boid)
-            checkBounds(boid)
+            checkBounds(boid, bounds)
         })
 
         window.requestAnimationFrame(tick)
