@@ -85,6 +85,19 @@ function initBoids() {
     return (boids)
 }
 
+function init_predator() {
+    const predatorGeometry = new THREE.ConeGeometry(1, 1.8, 32);
+    const predatorMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    const predator = new THREE.Mesh(predatorGeometry, predatorMaterial);
+    predator.position.x = Math.random() * 10 - 5;
+    predator.position.y = Math.random() * 10 - 5;
+    predator.position.z = Math.random() * 10 - 5;
+    predator.direction = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5);
+
+    scene.add(predator);
+    return (predator);
+}
+
 function init_bounds() {
     const geometry = new THREE.BoxGeometry(50, 50, 50)
     const material = new THREE.MeshBasicMaterial({ color: 0x403002, side: THREE.BackSide, visible: false})
@@ -104,9 +117,8 @@ function init() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 
     const boids = initBoids()
-
+    const predator = init_predator()
     const bounds = init_bounds()
-    console.log(bounds)
 
     const tick = () => {
         controls.update()
@@ -116,13 +128,18 @@ function init() {
         // move all boids
         boids.children.forEach(boid => {
             rotateBoid(boid)
-            avoidBoids(boid, boids)
+            avoidBoids(boid, boids, predator)
             moveTowardsCenterOfMass(boid, boids)
             speed(boid)
             updatePosition(boid)
             checkBounds(boid, bounds)
         })
 
+        rotateBoid(predator)
+        speed(predator)
+        updatePosition(predator)
+        checkBounds(predator, bounds)
+        
         window.requestAnimationFrame(tick)
     }
     tick()

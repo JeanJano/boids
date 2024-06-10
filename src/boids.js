@@ -4,11 +4,13 @@ import * as dat from 'lil-gui'
 const gui = new dat.GUI()
 
 let bird = {
-    separation: 0.5,
+    separation: 1.2,
     alignment: 0,
     cohesion: 2,
     speed: 1.5,
 }
+
+// ajouter un facteur aleatoire pour la vitesse avec un vitesse min et max
 
 gui.add(bird, 'separation', 0.1, 3, 0.1)
 gui.add(bird, 'cohesion', 0.1, 5, 0.1)
@@ -46,7 +48,7 @@ function rotateBoid(boid) {
     boid.quaternion.slerp(targetQuaternion, 0.1);
 }
 
-function avoidBoids(boid, boids) {
+function avoidBoids(boid, boids, predator) {
     boids.children.forEach(otherBoid => {
         if (boid !== otherBoid) {
             const distance = boid.position.distanceTo(otherBoid.position)
@@ -57,6 +59,13 @@ function avoidBoids(boid, boids) {
             }
         }
     })
+
+    const predatorDistance = boid.position.distanceTo(predator.position)
+    if (predatorDistance < 7) {
+        const away = boid.position.clone().sub(predator.position).normalize().multiplyScalar(2)
+        boid.direction.add(away)
+    }
+
     boid.direction.normalize()
 }
 
