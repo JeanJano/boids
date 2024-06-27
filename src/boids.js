@@ -8,6 +8,8 @@ let bird = {
     alignment: 0,
     cohesion: 2,
     speed: 1.5,
+    minSpeed: 1.5,
+    maxSpeed: 1.5,
 }
 
 // ajouter un facteur aleatoire pour la vitesse avec un vitesse min et max
@@ -15,7 +17,7 @@ let bird = {
 gui.add(bird, 'separation', 0.1, 3, 0.1)
 gui.add(bird, 'cohesion', 0.1, 5, 0.1)
 gui.add(bird, 'alignment', -1, 1, 0.1)
-gui.add(bird, 'speed', 0.1, 5, 0.1)
+// gui.add(bird, 'speed', 0.1, 5, 0.1)
 
 function moveTowardsCenterOfMass(boid, boids) {
     let centerX = 0
@@ -48,7 +50,8 @@ function rotateBoid(boid) {
     boid.quaternion.slerp(targetQuaternion, 0.1);
 }
 
-function avoidBoids(boid, boids, predator) {
+function avoidBoids(boid, boids, predator, bounds) {
+    let minDistance = Infinity
     boids.children.forEach(otherBoid => {
         if (boid !== otherBoid) {
             const distance = boid.position.distanceTo(otherBoid.position)
@@ -56,6 +59,9 @@ function avoidBoids(boid, boids, predator) {
                 // move away from other boid
                 const away = boid.position.clone().sub(otherBoid.position).normalize().multiplyScalar(2)
                 boid.direction.add(away)
+            }
+            if (distance < minDistance) {
+                minDistance = distance
             }
         }
     })
@@ -65,13 +71,25 @@ function avoidBoids(boid, boids, predator) {
         const away = boid.position.clone().sub(predator.position).normalize().multiplyScalar(2)
         boid.direction.add(away)
     }
+    if (predatorDistance < minDistance) {
+        minDistance = predatorDistance
+    }
+
+    const raycaster = new THREE.Raycaster(boid.position, boid.direction, 0, 500)
+    const intersects = raycaster.intersectObjects(bounds)
+    if (intersects.length > 0 && intersects[0].distance < minDistance) {
+        minDistance = intersects[0].distance
+    }
+
+    const speed = THREE.MathUtils.lerp(bird.minSpeed, bird.maxSpeed, minDistance / bird.separation)
+    boid.direction.multiplyScalar(speed)
 
     boid.direction.normalize()
 }
 
 function speed(boid) {
-    if (boid.direction.length() > bird.speed) {
-        boid.direction.normalize().multiplyScalar(bird.speed)
+    if (boid.direction.length() > bird.minSpeed) {
+        boid.direction.normalize().multiplyScalar(bird.minSpeed)
     }
 }
 
@@ -83,7 +101,7 @@ function updatePosition(boid) {
 }
 
 function checkBounds(boid, bounds) {
-    const raycaster = new THREE.Raycaster(boid.position, boid.direction, 0, 500);
+    const raycaster = new THREE.Raycaster(boid.position, boid.direction, 0, 15);
     const intersects = raycaster.intersectObjects([bounds]);
 
     if (intersects.length > 0 && intersects[0].distance < 10) {

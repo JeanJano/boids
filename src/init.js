@@ -1,7 +1,7 @@
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { moveTowardsCenterOfMass, rotateBoid, avoidBoids, speed, updatePosition, checkBounds } from './boids.js'
-import { BoundingBox } from 'three/examples/jsm/libs/opentype.module.js'
+import { Sky } from 'three/addons/objects/Sky.js'
 
 const sizes = {
     width: window.innerWidth,
@@ -106,6 +106,17 @@ function init_bounds() {
     return (bounds)
 }
 
+function initSky() {
+    const sky = new Sky()
+    sky.scale.setScalar(100, 100, 100)
+    scene.add(sky)
+    sky.material.uniforms['turbidity'].value = 10
+    sky.material.uniforms['rayleigh'].value = 3
+    sky.material.uniforms['mieCoefficient'].value = 0.1
+    sky.material.uniforms['mieDirectionalG'].value = 0.95
+    sky.material.uniforms['sunPosition'].value.set(0.3, -0.038, -0.95)
+}
+
 function init() {
     camera.position.z = 60
     scene.add(camera)
@@ -120,6 +131,8 @@ function init() {
     const predator = init_predator()
     const bounds = init_bounds()
 
+    initSky();
+
     const tick = () => {
         controls.update()
 
@@ -128,13 +141,14 @@ function init() {
         // move all boids
         boids.children.forEach(boid => {
             rotateBoid(boid)
-            avoidBoids(boid, boids, predator)
+            avoidBoids(boid, boids, predator, bounds)
             moveTowardsCenterOfMass(boid, boids)
             speed(boid)
             updatePosition(boid)
             checkBounds(boid, bounds)
         })
 
+        // move predator
         rotateBoid(predator)
         speed(predator)
         updatePosition(predator)
