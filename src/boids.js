@@ -45,9 +45,15 @@ function moveTowardsCenterOfMass(boid, boids) {
 }
 
 function rotateBoid(boid) {
-    let targetQuaternion = new THREE.Quaternion();
-    targetQuaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), boid.direction.clone().normalize());
-    boid.quaternion.slerp(targetQuaternion, 0.1);
+    if (boid.name === 'Sketchfab_Scene') {
+        let targetQuaternion = new THREE.Quaternion();
+        targetQuaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), boid.direction.clone().normalize());
+        boid.quaternion.slerp(targetQuaternion, 0.1);    
+    } else {
+        let targetQuaternion = new THREE.Quaternion();
+        targetQuaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), boid.direction.clone().normalize());
+        boid.quaternion.slerp(targetQuaternion, 0.1);
+    }
 }
 
 function avoidBoids(boid, boids, predator, bounds) {

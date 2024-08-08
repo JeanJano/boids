@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { moveTowardsCenterOfMass, rotateBoid, avoidBoids, speed, updatePosition, checkBounds } from './boids.js'
 import { Sky } from 'three/addons/objects/Sky.js'
+import { GLTFLoader } from 'three/examples/jsm/Addons.js'
 
 const sizes = {
     width: window.innerWidth,
@@ -65,8 +66,24 @@ function fullscreen() {
  */
 
 function initBoids() {
-    const boidCount = 1000
+    const boidCount = 500
     const boids = new THREE.Group()
+    const ambientLight = new THREE.AmbientLight(0xffffff, 2)
+    scene.add(ambientLight)
+
+    const loader = new GLTFLoader()
+    loader.load('paper_plane.glb', function (gltf) {
+        console.log(gltf)
+        for (let i = 0; i < boidCount; i++) {
+            const boid = gltf.scene.clone()
+            boid.position.x = Math.random() * 10 - 5
+            boid.position.y = Math.random() * 10 - 5
+            boid.position.z = Math.random() * 10 - 5
+            boid.direction = new THREE.Vector3(Math.random() - 0.5, Math.random() - 0.5, Math.random() - 0.5)
+            boid.scale.setScalar(0.4)
+            boids.add(boid)
+        }
+    })
 
     for (let i = 0; i < boidCount; i++) {
         const geometry = new THREE.ConeGeometry(0.08, 0.4, 32)
