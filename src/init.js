@@ -135,6 +135,7 @@ function initSky() {
 }
 
 function init() {
+    
     camera.position.z = 60
     scene.add(camera)
 
